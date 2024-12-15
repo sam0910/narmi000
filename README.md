@@ -6,7 +6,7 @@
 
     업데이트 모드 진입시,
 
-    1. 주변 Wifi 중 와이파이 비번이 12345678( [src/app/common.py](https://github.com/sam0910/narmi000/blob/main/src/app/common.py) - INITIAL_WIFI_PASSWORD ) 연결 시도
+    1. 주변 Wifi 중 와이파이 비번이 [src/app/common.py](https://github.com/sam0910/narmi000/blob/main/src/app/common.py) - INITIAL_WIFI_PASSWORD 인 AP로 연결 시도
     2. [src/app/secrets.py](https://github.com/sam0910/narmi000/blob/main/src/app/secrets.py) 내의 지정된 Wifi로 접속 시도
 
     ```
@@ -29,3 +29,5 @@
 ## :rocket: USB UART
 
 > CP2102 모듈 추천 ... [구매링크](https://robotscience.kr/goods/view?no=14262&gad_source=1&gbraid=0AAAAACWB_n-m_x6At5UWQn2Q6Hc8YhFkc&gclid=CjwKCAiAmfq6BhAsEiwAX1jsZ2Iw9Hm85rxKg5IMHjzzwXI6OYQJh3hXjFVWU3ZfzOAzd248pVO96hoCz94QAvD_BwE)
+>
+![Pinmap](https://github.com/sam0910/narmi000/blob/main/uart-pinmap.png)
