@@ -1,4 +1,4 @@
-print("Version 0.0.0 by local update")
+print("Version 0.0.2 by local update")
 
 from machine import Pin, time_pulse_us, lightsleep, freq, SoftI2C
 import uasyncio as asyncio
@@ -21,8 +21,8 @@ from app.sensor.max17048 import max1704x
 from calibration import CALIB_TEMP, CALIB_HUMIDITY
 
 DEVICE_NAME = const("NARMI000")
-BTN_DOWN = const(35)
-BTN_UP = const(34)
+BTN_DOWN = const(34)
+BTN_UP = const(35)
 
 _IRQ_CENTRAL_CONNECT = const(1)
 _IRQ_CENTRAL_DISCONNECT = const(2)

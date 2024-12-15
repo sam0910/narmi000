@@ -25,7 +25,6 @@ def check_both_buttons():
     button1 = Pin(34, Pin.IN, Pin.PULL_UP)
     button2 = Pin(35, Pin.IN, Pin.PULL_UP)
     if not button1.value() and not button2.value():
-        print("Both buttons are pressed")
         return True
     return False
 

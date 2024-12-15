@@ -9,7 +9,6 @@ Dependencies: binascii, machine
 modified by: @Cesar
 """
 
-from machine import Pin, SoftI2C
 import binascii
 from micropython import const
 
@@ -169,8 +168,11 @@ class max1704x:
 
 
 if __name__ == "__main__":
+    from machine import Pin, SoftI2C
 
-    my_sensor = max1704x()
+    i2c = SoftI2C(scl=Pin(22), sda=Pin(21))
+
+    my_sensor = max1704x(i2c)
 
     # Get the I2C address of the sensor
     print("I2C address of the sensor:", my_sensor.address())
