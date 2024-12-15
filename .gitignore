@@ -2,7 +2,6 @@
 __pycache__/
 *.py[cod]
 *$py.class
-secrets.py
 pymakr.conf
 # C extensions
 *.so
