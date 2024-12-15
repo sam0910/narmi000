@@ -1,9 +1,6 @@
-# micropython
-# MIT license
-# Copyright (c) 2022 Roman Shevchik   goctaprog@gmail.com
 import struct
 import micropython
-from sensor.sht40 import bus_service
+from app.sensor.sht40 import bus_service
 from machine import Pin
 
 
@@ -17,19 +14,18 @@ def check_value(value: [int, None], valid_range: [range, tuple], error_msg: str)
 
 
 def get_error_str(val_name: str, val: int, rng: [range, tuple]) -> str:
-    """Возвращает подробное сообщение об ошибке.
-    val_name - имя переменной в коде;
-    val - значение переменной val_name;
-    rng - допустимый диапазон переменной"""
+    """Returns detailed error message.
+    val_name - variable name in code
+    val - value of val_name variable
+    rng - valid range for variable"""
     if isinstance(rng, range):
-        return f"Значение {val} параметра {val_name} вне диапазона [{rng.start}..{rng.stop - 1}]!"
-    # tuple
-    return f"Значение {val} параметра {val_name} вне диапазона: {rng}!"
+        return f"Value {val} of parameter {val_name} is out of range [{rng.start}..{rng.stop - 1}]!"
+    return f"Value {val} of parameter {val_name} is out of range: {rng}!"
 
 
 def all_none(*args):
-    """возвращает Истина, если все входные параметры в None.
-    Добавил 25.01.2024"""
+    """Returns True if all input parameters are None.
+    Added 25.01.2024"""
     for element in args:
         if element is not None:
             return False
@@ -37,7 +33,7 @@ def all_none(*args):
 
 
 class Device:
-    """Класс - основа датчика"""
+    """Base sensor class"""
 
     def __init__(self, adapter: bus_service.BusAdapter, address: [int, Pin], big_byte_order: bool):
         """Базовый класс Устройство.
@@ -61,8 +57,8 @@ class Device:
     def _get_byteorder_as_str(self) -> tuple:
         """Return byteorder as string"""
         if self.is_big_byteorder():
-            return 'big', '>'
-        return 'little', '<'
+            return "big", ">"
+        return "little", "<"
 
     def pack(self, fmt_char: str, *values) -> bytes:
         if not fmt_char:
@@ -87,7 +83,7 @@ class Device:
 
 
 class DeviceEx(Device):
-    """Класс - основа датчика. Добавил общие методы доступа к шине. 30.01.2024"""
+    """Base sensor class. Added common bus access methods. 30.01.2024"""
 
     def read_reg(self, reg_addr: int, bytes_count=2) -> bytes:
         """считывает из регистра датчика значение.
@@ -157,7 +153,7 @@ class Iterator:
 
 
 class ITemperatureSensor:
-    """Вспомогательный или основной датчик температуры"""
+    """Auxiliary or main temperature sensor"""
 
     def enable_temp_meas(self, enable: bool = True):
         """Включает измерение температуры при enable в Истина
@@ -174,7 +170,7 @@ class ITemperatureSensor:
 # maximum (на ваш выбор) - устройство выполняет минимум своих функций (минимальное энергопотребление)
 #
 class IPower:
-    """интерфейс управления мощностью потребления устройства"""
+    """Device power consumption management interface"""
 
     def set_power_level(self, level: [int, None] = 0) -> int:
         """level >=0 or None
@@ -188,14 +184,15 @@ class IPower:
         """
         raise NotImplemented
 
+
 #    def power_on(self, on: bool = True) -> int:
-#        """Полностью включает (on в Истина), либо полностью ВЫключает (on в Ложь)
+#        """Полностью включает (on в Истина), либо полностью ВЫключает (on в ��ожь)
 #        Возвращает текущий режим потребления устройства."""
 #        raise NotImplemented
 
 
 class IBaseSensorEx:
-    """интерфейсы, обязательные для большинства датчиков"""
+    """Mandatory interfaces for most sensors"""
 
     def get_conversion_cycle_time(self) -> int:
         """Возвращает время в мс или мкс преобразования сигнала в цифровой код и готовности его для чтения по шине!
@@ -210,9 +207,9 @@ class IBaseSensorEx:
         """Возвращает измеренное датчиком значение(значения)"""
         raise NotImplemented
 
-#    def is_data_ready(self) -> bool:
-#        """Возвращает Истина, если данные доступны для считывания"""
-#        raise NotImplemented
+    #    def is_data_ready(self) -> bool:
+    #        """Возвращает Истина, если данные доступны для считывания"""
+    #        raise NotImplemented
 
     def is_single_shot_mode(self) -> bool:
         """Возвращает Истина, когда датчик находится в режиме однократных измерений,

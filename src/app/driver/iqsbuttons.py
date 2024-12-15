@@ -1,7 +1,7 @@
 from machine import Pin, TouchPad
 from utime import ticks_ms, ticks_diff
 import uasyncio as asyncio
-from primitives.pushbutton import Pushbutton
+from app.primitives.pushbutton import Pushbutton
 
 DIVE_BTN_THRES = 600
 

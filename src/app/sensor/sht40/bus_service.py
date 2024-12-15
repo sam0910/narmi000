@@ -1,22 +1,23 @@
 # micropython
 # MIT license
 # Copyright (c) 2022 Roman Shevchik   goctaprog@gmail.com
-"""MicroPython модуль для работы с шинами ввода/вывода"""
+"""MicroPython module for working with I/O buses"""
 
 import math
 from machine import I2C, SPI, Pin
 
 
 def mpy_bl(value: int) -> int:
-    """Возвращает место, занимаемое значением value в битах.
-    Аналог int.bit_length(), которая есть в Python, но отсутствует в MicroPython!"""
+    """Returns the space occupied by value in bits.
+    Analog of int.bit_length() which exists in Python but is missing in MicroPython!"""
     if 0 == value:
         return 0
     return 1 + int(math.log2(abs(value)))
 
 
 class BusAdapter:
-    """Посредник между шиной ввода/вывода и классом ввода/вывода устройства"""
+    """Mediator between I/O bus and device I/O class"""
+
     def __init__(self, bus: [I2C, SPI]):
         self.bus = bus
 
@@ -31,8 +32,9 @@ class BusAdapter:
         bytes_count - размер значения в байтах."""
         raise NotImplementedError
 
-    def write_register(self, device_addr: [int, Pin], reg_addr: int, value: [int, bytes, bytearray],
-                       bytes_count: int, byte_order: str):
+    def write_register(
+        self, device_addr: [int, Pin], reg_addr: int, value: [int, bytes, bytearray], bytes_count: int, byte_order: str
+    ):
         """записывает данные value в датчик, по адресу reg_addr.
         bytes_count - кол-во записываемых байт из value.
         byte_order - порядок расположения байт в записываемом значении."""
@@ -90,11 +92,13 @@ class BusAdapter:
 
 class I2cAdapter(BusAdapter):
     """Адаптер шины I2C"""
+
     def __init__(self, bus: I2C):
         super().__init__(bus)
 
-    def write_register(self, device_addr: int, reg_addr: int, value: [int, bytes, bytearray],
-                       bytes_count: int, byte_order: str):
+    def write_register(
+        self, device_addr: int, reg_addr: int, value: [int, bytes, bytearray], bytes_count: int, byte_order: str
+    ):
         """записывает данные value в датчик, по адресу reg_addr.
         bytes_count - кол-во записываемых данных
         value - должно быть типов int, bytes, bytearray"""
@@ -118,7 +122,7 @@ class I2cAdapter(BusAdapter):
         """Читает из устройства на шине с адресом device_addr в буфер buf количество байт, равное длине(len) буфера!"""
         self.bus.readfrom_into(device_addr, buf)
         return buf
-    
+
     def write(self, device_addr: int, buf: bytes):
         return self.bus.writeto(device_addr, buf)
 
@@ -140,6 +144,7 @@ class I2cAdapter(BusAdapter):
 
 class SpiAdapter(BusAdapter):
     """Адаптер шины SPI"""
+
     def __init__(self, bus: SPI, data_mode: Pin = None):
         """Параметр data_mode представляет собой вывод MCU, который используется для установки флага,
         что посылка является данными (high) или командой (low). Например это необходимо при обмене с ILI9481."""
@@ -198,7 +203,7 @@ class SpiAdapter(BusAdapter):
         The data_packet parameter is an indication that the package is data (high) or command (low).
          For example, this is necessary when exchanging ILI9481."""
         try:
-            device_addr.low()   # chip select
+            device_addr.low()  # chip select
             if self.use_data_mode_pin and self.data_mode_pin:
                 self.data_mode_pin.value(self.data_packet)
             return self.bus.write(buf)
@@ -214,7 +219,7 @@ class SpiAdapter(BusAdapter):
         The data_packet parameter is an indication that the package is data (high) or command (low).
          For example, this is necessary when exchanging ILI9481."""
         try:
-            device_addr.low()   # chip select
+            device_addr.low()  # chip select
             if self.use_data_mode_pin and self.data_mode_pin:
                 self.data_mode_pin.value(self.data_packet)
             return self.bus.write_readinto(wr_buf, rd_buf)

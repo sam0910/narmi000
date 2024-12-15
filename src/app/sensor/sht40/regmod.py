@@ -1,30 +1,28 @@
 # micropython
 # MIT license
 # Copyright (c) 2024 Roman Shevchik   goctaprog@gmail.com
-"""представление аппаратного регистра устройства"""
+"""Hardware register device representation"""
 
-# from sensor_pack_2 import bus_service
-from sensor.sht40.base_sensor import DeviceEx, get_error_str, check_value
-from sensor.sht40.bitfield import BitFields
-
-# 24.04.2024 было-> address: int; стало-> address: [int, None]. Смотри def __init__(...
+# from app.sensor_pack_2 import bus_service
+from app.sensor.sht40.base_sensor import DeviceEx, get_error_str, check_value
+from app.sensor.sht40.bitfield import BitFields
 
 
 class BaseRegistry:
-    """Представление аппаратного регистра. Базовый класс."""
+    """Hardware register representation. Base class."""
 
     def _get_width(self) -> int:
-        """Возвращает разрядность регистра по информация из параметра типа BitFields в байтах!"""
+        """Returns register width in bytes based on BitFields parameter information"""
         mx = max(map(lambda val: val.position.stop, self._fields))
         # print(f"DBG: _get_width: {mx}")
-        return 1 + int((mx - 1)/8)
+        return 1 + int((mx - 1) / 8)
 
     def __init__(self, device: [DeviceEx, None], address: [int, None], fields: BitFields, byte_len: [int, None] = None):
-        """device - устройство, которому принадлежит регистр.
-        address - адрес регистра в памяти устройства.
-        fields - битовые поля регистра.
-        byte_len - разрядность регистра в байтах!"""
-        check_value(byte_len, range(1, 3), get_error_str('byte_len', byte_len, range(1, 3)))
+        """device - device that owns the register
+        address - register address in device memory
+        fields - register bit fields
+        byte_len - register width in bytes!"""
+        check_value(byte_len, range(1, 3), get_error_str("byte_len", byte_len, range(1, 3)))
         self._device = device
         self._address = address
         self._fields = fields
@@ -34,12 +32,15 @@ class BaseRegistry:
         # str_err = f"Неверный параметр битового поля!"
         _k = 8 * self._byte_len
         for field in fields:
-            check_value(field.position.start, range(_k),
-                        get_error_str('field.position.start', field.position.start, range(_k)))
-            check_value(field.position.stop - 1, range(_k),
-                        get_error_str('field.position.stop', field.position.stop, range(_k)))
-            check_value(field.position.step, range(1, 2),
-                        get_error_str('field.position.step', field.position.step, range(1, 2)))  # шаг только единица!
+            check_value(
+                field.position.start, range(_k), get_error_str("field.position.start", field.position.start, range(_k))
+            )
+            check_value(
+                field.position.stop - 1, range(_k), get_error_str("field.position.stop", field.position.stop, range(_k))
+            )
+            check_value(
+                field.position.step, range(1, 2), get_error_str("field.position.step", field.position.step, range(1, 2))
+            )  # шаг только единица!
         #
         self._value = 0  # значение, считанное из регистра
 
