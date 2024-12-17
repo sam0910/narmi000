@@ -10,6 +10,7 @@ const INTERVAL_CHAR_UUID = 0x2a24; // Add interval characteristic UUID
 const HUMIDITY_CHAR_UUID = 0x2a6f;
 const BATT_SVC_UUID = 0x180f;
 const BATT_LEVEL_CHAR_UUID = 0x2a19;
+const CALIB_CHAR_UUID = 0x2b00; // Custom UUID for calibration
 
 export const BLEProvider = ({ children }) => {
     const [device, setDevice] = useState(null);
@@ -20,6 +21,7 @@ export const BLEProvider = ({ children }) => {
     const [lastReceived, setLastReceived] = useState(null); // Add last received state
     const [humidity, setHumidity] = useState(null);
     const [batteryLevel, setBatteryLevel] = useState(null);
+    const [calibCharacteristic, setCalibCharacteristic] = useState(null);
 
     const registerBackgroundSync = async () => {
         try {
@@ -159,6 +161,11 @@ export const BLEProvider = ({ children }) => {
                 setLastReceived(timestamp);
             });
 
+            // Get calibration characteristic
+            console.log("Getting Calibration Characteristic...");
+            const calibCharacteristic = await envService.getCharacteristic(CALIB_CHAR_UUID);
+            setCalibCharacteristic(calibCharacteristic);
+
             await registerBackgroundSync();
 
             setDevice(device);
@@ -179,6 +186,28 @@ export const BLEProvider = ({ children }) => {
             if (error.message.includes("security")) {
                 console.log("Security error - may need to forget device and repair");
             }
+        }
+    };
+
+    const writeCalibration = async (tempCalib, humidityCalib) => {
+        if (!calibCharacteristic) {
+            console.error("Calibration characteristic not available");
+            return false;
+        }
+
+        try {
+            // Pack calibration values into buffer: [temp(2 bytes), humidity(2 bytes)]
+            const buffer = new ArrayBuffer(4);
+            const view = new DataView(buffer);
+            view.setInt16(0, tempCalib * 100, true); // temp with 2 decimal places
+            view.setInt16(2, humidityCalib * 100, true); // humidity with 2 decimal places
+
+            await calibCharacteristic.writeValue(buffer);
+            console.log("Calibration values written successfully");
+            return true;
+        } catch (error) {
+            console.error("Failed to write calibration:", error);
+            return false;
         }
     };
 
@@ -203,6 +232,7 @@ export const BLEProvider = ({ children }) => {
                 batteryLevel,
                 connectToDevice,
                 disconnect,
+                writeCalibration,
             }}>
             {children}
         </BLEContext.Provider>

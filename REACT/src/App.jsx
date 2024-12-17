@@ -9,6 +9,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { useMediaQuery } from "react-responsive";
+import { Input } from "@/components/ui/input"; // Add this import
 
 // ipconfig getifaddr en0
 function BLEControl() {
@@ -22,8 +23,11 @@ function BLEControl() {
         distance,
         interval,
         lastReceived,
+        writeCalibration,
     } = useBLE();
     const [dataCounter, setDataCounter] = useState(0);
+    const [tempCalib, setTempCalib] = useState(0);
+    const [humidityCalib, setHumidityCalib] = useState(0);
 
     useEffect(() => {
         if (
@@ -43,6 +47,22 @@ function BLEControl() {
         }
     }, [isConnected]);
 
+    const handleCalibrationSubmit = async () => {
+        try {
+            const success = await writeCalibration(tempCalib, humidityCalib);
+            if (success) {
+                console.log("Calibration values sent successfully");
+                // Optionally show success message to user
+            } else {
+                console.error("Failed to send calibration values");
+                // Optionally show error message to user
+            }
+        } catch (error) {
+            console.error("Error sending calibration:", error);
+            // Optionally show error message to user
+        }
+    };
+
     return (
         <Card className="w-full p-2">
             <CardHeader>
@@ -54,22 +74,57 @@ function BLEControl() {
                         <Button variant="destructive" size="lg" onClick={disconnect}>
                             Disconnect
                         </Button>
+
+                        {/* Add calibration controls */}
+                        <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg">
+                            <div className="space-y-2">
+                                <Label>Temperature Calibration</Label>
+                                <div className="flex gap-2">
+                                    <Input
+                                        type="number"
+                                        step="0.1"
+                                        value={tempCalib}
+                                        onChange={(e) => setTempCalib(parseFloat(e.target.value) || 0)}
+                                        placeholder="°C"
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Humidity Calibration</Label>
+                                <div className="flex gap-2">
+                                    <Input
+                                        type="number"
+                                        step="0.1"
+                                        value={humidityCalib}
+                                        onChange={(e) => setHumidityCalib(parseFloat(e.target.value) || 0)}
+                                        placeholder="%"
+                                    />
+                                </div>
+                            </div>
+                            <Button className="col-span-2" variant="secondary" onClick={handleCalibrationSubmit}>
+                                Apply Calibration
+                            </Button>
+                        </div>
+
+                        {/* Existing sensor readings */}
                         <div className="text-xl md:text-2xl">
                             <Label>
                                 Temperature:
                                 <Badge className="ml-2">
-                                    {temperature !== null ? `${temperature.toFixed(2)}°C` : "Reading..."}
+                                    {temperature !== null ? `${(temperature + tempCalib).toFixed(2)}°C` : "Reading..."}
                                 </Badge>
                             </Label>
                         </div>
+
                         <div className="text-xl md:text-2xl">
                             <Label>
                                 Humidity:
                                 <Badge className="ml-2">
-                                    {humidity !== null ? `${humidity.toFixed(1)}%` : "Reading..."}
+                                    {humidity !== null ? `${(humidity + humidityCalib).toFixed(1)}%` : "Reading..."}
                                 </Badge>
                             </Label>
                         </div>
+
                         <div className="text-xl md:text-2xl">
                             <Label>
                                 Battery:
