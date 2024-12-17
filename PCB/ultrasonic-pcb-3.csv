@@ -1,0 +1,32 @@
+"null","Sourced","Placed","References","Value","Footprint","Description","Datasheet","Quantity"
+1,"","✓","C1, C2, C4, C13","100nF","C_0402_1005Metric","","",4
+2,"","✓","C5, C6, C9, C10","4.7uF","C_0603_1608Metric",", Unpolarized capacitor","",4
+3,"","✓","C14","10uF","C_0603_1608Metric","","",1
+4,"","✓","C17","1uF","C_0402_1005Metric","","",1
+5,"","✓","R6, R7, R11, R15, R16, R20","100K","R_0402_1005Metric","","",6
+6,"","✓","R4, R17, R18, R19","10K","R_0402_1005Metric","","",4
+7,"","✓","R1, R2, R3","100R","C_0402_1005Metric","Resistor","",3
+8,"","✓","R8, R9","5K1","R_0603_1608Metric","Resistor","",2
+9,"","✓","R5","1.5M","R_0402_1005Metric","","",1
+10,"","✓","R10","500R","C_0402_1005Metric","Resistor","",1
+11,"","✓","R12","1K","R_0402_1005Metric","","",1
+12,"","✓","R13","3K3","R_0402_1005Metric","","",1
+13,"","","R14","470K","R_0402_1005Metric","","",1
+14,"","✓","D2, D3, D5, D6","LED","LED_0603_1608Metric","Light emitting diode","LY Q396-P1Q2-36",4
+15,"","✓","D1","DESD5V0U1BL-7B","DESD5V0U1BL7B","ESD Suppressors / TVS Diodes LowCap BiDirectional 1Ch TVS 3A 250mW","https://www.diodes.com/assets/Datasheets/DESD5V0U1BL.pdf",1
+16,"","✓","D4","SD103AWS","SD103AWS","Schottky Barrier Diodes (SBD) SOD-323 RoHS","https://datasheet.lcsc.com/lcsc/1912111437_Shandong-Jingdao-Microelectronics-SD103AWS_C438010.pdf",1
+17,"","","U1","ESP32-PICO-MINI-02U-N8R2","MODULE_ESP32-PICO-MINI-02","","",1
+18,"","","U2","MAX17048G_T10","MAX17048G_T10","","",1
+19,"","✓","U3","SHT4x","Sensirion_DFN-4_1.5x1.5mm_P0.8mm_SHT4x_NoCentralPad","Digital Humidity and Temperature Sensor, +/-1%RH, +/-0.1degC, I2C, 1.08-3.6V, 16bit, DFN-4","https://sensirion.com/media/documents/33FD6951/624C4357/Datasheet_SHT4x.pdf",1
+20,"","✓","SW1, SW2","TL6150","TL6150","MEC 5E single pole normally-open tactile switch","TL6150AF160QG",2
+21,"","✓","H1, H3, H4","MountingHole","MountingHole_2.2mm_M2_DIN965_Pad","","",3
+22,"","","FID1, FID2","Fiducial","Fiducial_1.5mm_Mask3mm","","",2
+23,"","","FID3","Fiducial","Fiducial_1mm_Mask2mm","","",1
+24,"","✓","IC3","RT9080-33GJ5","SOT94P280X100-5N","IC REG LIN 3.3V 600MA TSOT23-5","https://www.richtek.com/assets/product_file/RT9080/DS9080-05.pdf",1
+25,"","","IC5","MCP73831-2DCI_MC","SON50P300X200X100-9N-D","Linear Battery Charger Controller Li-Ion/Li-Pol 505mA 4.2V 8-Pin DFN EP Tube","https://www.arrow.com/en/products/mcp73831-2dcimc/microchip-technology",1
+26,"","","Q1","SIA517DJ-T1-GE3","SIA537EDJT1GE3","","http://www.vishay.com/docs/64832/sia517dj.pdf",1
+27,"","","Q2","NTA4151PT1G","NTA4151PT1G","ON Semiconductor NTA4151PT1G P-channel MOSFET Transistor, 0.76 A, -20 V, 3-Pin SC-75","http://www.onsemi.com/pub/Collateral/NTA4151P-D.PDF",1
+28,"","","S1","JS102011SAQN","SW_JS102011SAQN","Sub-Miniature Slide Switch-DPDT-0.3A@6VDC-Surface Mount-5,000 Cycles","",1
+29,"","","TP6","TestPoint","SolderWire-0.1sqmm_1x01_D0.4mm_OD1mm","","",1
+30,"","","J3","Conn_01x02_Pin","PinHeader_1x02_P2.54mm_Horizontal","Generic connector, single row, 01x02, script generated","",1
+31,"","","J4","UJC-HP-3-SMT-TR","CUI_UJC-HP-3-SMT-TR","","",1
