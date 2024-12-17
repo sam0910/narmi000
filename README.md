@@ -40,8 +40,28 @@
 
 -   Save Calibration data : 0x2B00 (unsigned 16-bit)
 
+```
+byte[] value = new byte[]{0x01, 0x02, 0x03, 0x04}; // Example byte array
+
+// Unpack temp_calib as unsigned 16-bit
+int tempCalibRaw = ByteBuffer.wrap(value, 0, 2).order(ByteOrder.LITTLE_ENDIAN).getShort() & 0xFFFF;
+double tempCalib = tempCalibRaw / 100.0;
+
+// Unpack humidity_calib as unsigned 16-bit
+int humidityCalibRaw = ByteBuffer.wrap(value, 2, 2).order(ByteOrder.LITTLE_ENDIAN).getShort() & 0xFFFF;
+double humidityCalib = humidityCalibRaw / 100.0;
+
+// Print the results
+System.out.println("Temperature Calibration: " + tempCalib);
+System.out.println("Humidity Calibration: " + humidityCalib);
+```
+
 ## :rocket: USB UART
 
 > CP2102 모듈 추천 ... [구매링크](https://robotscience.kr/goods/view?no=14262&gad_source=1&gbraid=0AAAAACWB_n-m_x6At5UWQn2Q6Hc8YhFkc&gclid=CjwKCAiAmfq6BhAsEiwAX1jsZ2Iw9Hm85rxKg5IMHjzzwXI6OYQJh3hXjFVWU3ZfzOAzd248pVO96hoCz94QAvD_BwE)
 >
 > ![Pinmap](https://github.com/sam0910/narmi000/blob/main/uart-pinmap.png)
+
+```
+
+```
