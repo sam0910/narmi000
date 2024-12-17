@@ -4,13 +4,6 @@ from machine import Pin
 import time
 import app.common as common
 
-# Check if calibration.py exists, if not create it with default values
-if "calibration.py" not in os.listdir():
-    print("Creating default calibration.py")
-    with open("calibration.py", "w") as f:
-        f.write("CALIB_TEMP = 0.0\n")
-        f.write("CALIB_HUMIDITY = 0.0\n")
-
 
 # common.get_flash_info()
 common.blink_led(5, 100)
@@ -18,12 +11,12 @@ check = common.check_both_buttons()
 if check:
     print("No buttons are pressed")
     common.blink_led(1, 2000)
-    from app.start import BLENarmi
-    import bluetooth
+    # from app.start import BLENarmi
+    # import bluetooth
 
-    ble = bluetooth.BLE()
-    narmi = BLENarmi(ble)
-    narmi.start()
+    # ble = bluetooth.BLE()
+    # narmi = BLENarmi(ble)
+    # narmi.start()
 else:
     print("Both buttons are pressed, lets update the firmware")
     common.blink_led(4, 500)

@@ -12,12 +12,13 @@ DEVICE_NAME = const("NARMI000")
 
 
 def blink_led(times, delay):
-
-    for _ in range(times):
+    for i in range(times):
         LED.on()
         time.sleep_ms(delay)
         LED.off()
-        time.sleep_ms(delay)
+
+        if i < times - 1:
+            time.sleep_ms(delay)
 
 
 def check_both_buttons():

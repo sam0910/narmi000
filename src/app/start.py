@@ -1,6 +1,13 @@
 print("Version 0.0.2 by local update")
+import os
 
-from machine import Pin, time_pulse_us, lightsleep, freq, SoftI2C
+if "calibration.py" not in os.listdir():
+    print("Creating default calibration.py")
+    with open("calibration.py", "w") as f:
+        f.write("CALIB_TEMP = 0.0\n")
+        f.write("CALIB_HUMIDITY = 0.0\n")
+import esp32
+from machine import Pin, time_pulse_us, lightsleep, freq, SoftI2C, deepsleep
 import uasyncio as asyncio
 from micropython import const
 import bluetooth
@@ -19,6 +26,15 @@ from app.sensor.sht40.sht4xmod import SHT4xSensirion
 from app.sensor.sht40.bus_service import I2cAdapter
 from app.sensor.max17048 import max1704x
 from calibration import CALIB_TEMP, CALIB_HUMIDITY
+
+btn1 = Pin(34, Pin.IN, Pin.PULL_DOWN)
+btn2 = Pin(35, Pin.IN, Pin.PULL_DOWN)
+esp32.wake_on_ext1(pins=(btn1, btn2), level=esp32.WAKEUP_ANY_HIGH)
+
+ENABLE_SLEEP = False
+ADVERTIZING_LIMIT_MS = const(5000)
+SLEEP_TIME_S = const(5)
+NO_INTERACTION = const(20000)
 
 DEVICE_NAME = const("NARMI000")
 BTN_DOWN = const(34)
@@ -159,9 +175,9 @@ class BLENarmi:
         self._ble.active(True)
         self._ble.config(addr_mode=_ADDR_MODE)
         self.distance = HCSR04()
-        self.INTERVAL_MS = 1000
-        self.INTERVAL_GAP = 0
-        self.pending_sleep = 0
+        self.SLEEP_FOR_MS = SLEEP_TIME_S * 1000
+        self.USER_INTERACTED = 0
+        self.ADVERTIZING_TIME_MS = 0
         self.led = Pin(7, Pin.OUT, value=0)
 
         # Initialize SHT40 sensor
@@ -227,7 +243,7 @@ class BLENarmi:
             print("\nConnected to central device")
             self._connections.add(conn_handle)
             # Send initial interval value when device connects
-            self.set_interval(self.INTERVAL_MS, indicate=True)
+            self.set_interval(self.SLEEP_FOR_MS, indicate=True)
         elif event == _IRQ_CENTRAL_DISCONNECT:
             conn_handle, _, _ = data
             print("\nDisconnected from central device")
@@ -256,9 +272,7 @@ class BLENarmi:
         elif event == _IRQ_GATTS_INDICATE_DONE:
             conn_handle, value_handle, status = data
             if status == 0:
-                if self.pending_sleep == 0:
-                    self.pending_sleep = time.ticks_ms()
-                print(f" -> Indication confirmed (handle: {conn_handle})", self.pending_sleep)
+                print(f" -> Indication confirmed (handle: {conn_handle})")
 
             else:
                 print(f"Indication failed (handle: {conn_handle}, status: {status})")
@@ -317,14 +331,13 @@ class BLENarmi:
         btn = args[0]
         type = args[1]
         print("     [BTN_CB],", btn, type)
-        if btn == 2 and type == 1:
-            self.INTERVAL_MS = self.INTERVAL_MS + 1000
-            print("     [INTERVAL_MS],", self.INTERVAL_MS)
-            self.set_interval(self.INTERVAL_MS, indicate=True)
-        elif btn == 1 and type == 1 and self.INTERVAL_MS > 1000:
-            self.INTERVAL_MS = self.INTERVAL_MS - 1000
-            print("     [INTERVAL_MS],", self.INTERVAL_MS)
-            self.set_interval(self.INTERVAL_MS, indicate=True)
+        self.USER_INTERACTED = time.ticks_ms()
+        if btn == 2 and type == 0:
+            self.SLEEP_FOR_MS = self.SLEEP_FOR_MS + 1000
+            self.set_interval(self.SLEEP_FOR_MS, indicate=True)
+        elif btn == 1 and type == 0 and self.SLEEP_FOR_MS > 1000:
+            self.SLEEP_FOR_MS = self.SLEEP_FOR_MS - 1000
+            self.set_interval(self.SLEEP_FOR_MS, indicate=True)
 
     def set_temperature(self, temp_deg_c, notify=False, indicate=False):
         # Write the local value, ready for a central to read.
@@ -458,10 +471,9 @@ class BLENarmi:
             name=self._name, services=[_ENV_SENSE_UUID], appearance=_ADV_APPEARANCE_GENERIC_THERMOMETER
         )
         self._ble.gap_advertise(interval_us, adv_data=self._payload)
-        self.blink_led(1, 400)
+        self.ADVERTIZING_TIME_MS = time.ticks_ms()
 
     def blink_led(self, times, delay):
-
         for _ in range(times):
             self.led.on()
             time.sleep_ms(delay)
@@ -496,7 +508,7 @@ class BLENarmi:
     async def update_temperature(self):
         consecutive_failures = 0
         while True:
-            await asyncio.sleep_ms(self.INTERVAL_MS)
+            await asyncio.sleep_ms(self.SLEEP_FOR_MS)
 
             if len(self._connections) == 0:
                 continue
@@ -541,32 +553,38 @@ class BLENarmi:
             await asyncio.sleep_ms(500)
             print("Checking buttons", Pin(BTN_DOWN).value(), Pin(BTN_UP).value())
 
+    def fallin_sleep(self):
+        print("Going to sleep")
+        if ENABLE_SLEEP:
+            deepsleep(self.SLEEP_FOR_MS)
+
     async def go_sleep(self):
         while True:
-            await asyncio.sleep_ms(500)
-            if self.pending_sleep > 0:
-                print("pending_sleep > 0", self.pending_sleep)
-                after_pending_sleep = time.ticks_diff(time.ticks_ms(), self.pending_sleep)
-                print(
-                    f"after_pending_sleep({after_pending_sleep}) = time.ticks_diff(time.ticks_ms({time.ticks_ms()}), self.pending_sleep({self.pending_sleep}))"
-                )
-                print("after_pending_sleep", after_pending_sleep, ",sleeps for", self.INTERVAL_MS)
-                if after_pending_sleep > 3000:
-                    print("Going to sleep")
-                    await asyncio.sleep_ms(100)
-
-                    lightsleep(self.INTERVAL_MS)
-                    self.pending_sleep = 0
+            self.led.on()
+            await asyncio.sleep_ms(200)
+            self.led.off()
+            await asyncio.sleep_ms(300)
+            if self.USER_INTERACTED > 0:
+                after_ineteracted = time.ticks_diff(time.ticks_ms(), self.USER_INTERACTED)
+                if after_ineteracted >= NO_INTERACTION:
+                    self.USER_INTERACTED = time.ticks_ms()
+                    self.fallin_sleep()
+            if self.ADVERTIZING_TIME_MS > 0:
+                after_advertizing = time.ticks_diff(time.ticks_ms(), self.ADVERTIZING_TIME_MS)
+                if after_advertizing >= ADVERTIZING_LIMIT_MS:
+                    self.ADVERTIZING_TIME_MS = time.ticks_ms()
+                    self.fallin_sleep()
 
     async def loops(self):
         temp_task = self.loop.create_task(self.update_temperature())
+        ps = self.loop.create_task(self.go_sleep())
         self.loop.run_forever()
 
     def start(self):
 
         self.btns = IQSButtons(self.btn_cb, BTN_DOWN, BTN_UP, loop=self.loop)
         # temp_task = self.loop.create_task(self.check_buttons())
-        # ps = self.loop.create_task(self.go_sleep())
+        #
 
         try:
             asyncio.run(self.loops())
