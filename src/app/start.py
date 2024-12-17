@@ -26,19 +26,12 @@ from app.sensor.sht40.sht4xmod import SHT4xSensirion
 from app.sensor.sht40.bus_service import I2cAdapter
 from app.sensor.max17048 import max1704x
 from calibration import CALIB_TEMP, CALIB_HUMIDITY
+from app.configuration import *
 
 btn1 = Pin(34, Pin.IN, Pin.PULL_DOWN)
 btn2 = Pin(35, Pin.IN, Pin.PULL_DOWN)
 esp32.wake_on_ext1(pins=(btn1, btn2), level=esp32.WAKEUP_ANY_HIGH)
 
-ENABLE_SLEEP = False
-ADVERTIZING_LIMIT_MS = const(5000)
-SLEEP_TIME_S = const(5)
-NO_INTERACTION = const(20000)
-
-DEVICE_NAME = const("NARMI000")
-BTN_DOWN = const(34)
-BTN_UP = const(35)
 
 _IRQ_CENTRAL_CONNECT = const(1)
 _IRQ_CENTRAL_DISCONNECT = const(2)
@@ -179,6 +172,7 @@ class BLENarmi:
         self.USER_INTERACTED = 0
         self.ADVERTIZING_TIME_MS = 0
         self.led = Pin(7, Pin.OUT, value=0)
+        self.indicate_loop = None
 
         # Initialize SHT40 sensor
         self.i2c = SoftI2C(scl=Pin(22), sda=Pin(21), freq=100000)
@@ -242,9 +236,10 @@ class BLENarmi:
             conn_handle, _, _ = data
             print("\nConnected to central device")
             self._connections.add(conn_handle)
-            # Send initial interval value when device connects
-            self.set_interval(self.SLEEP_FOR_MS, indicate=True)
+            self.indicate_loop = self.loop.create_task(self.start_indicating())
+
         elif event == _IRQ_CENTRAL_DISCONNECT:
+            self.indicate_loop.cancel()
             conn_handle, _, _ = data
             print("\nDisconnected from central device")
             self._connections.remove(conn_handle)
@@ -423,12 +418,11 @@ class BLENarmi:
         try:
             soc = self.battery.getSoc()
             vcell = self.battery.getVCell()
-
             # # Validate readings are within reasonable ranges
             # if not (0 <= soc <= 100 and 2.5 <= vcell <= 4.5):
             #     print("Battery readings out of valid range")
             #     return None, None
-            print("     Battery SOC: ", soc, "VCell: ", vcell)
+            # print("     Battery SOC: ", soc, "VCell: ", vcell)
             return soc, vcell
         except Exception as e:
             print("Battery read error:", e)
@@ -453,7 +447,6 @@ class BLENarmi:
                 if -40 <= temp <= 125 and 0 <= humidity <= 100:
                     temp = temp + CALIB_TEMP
                     humidity = humidity + CALIB_HUMIDITY
-                    print("     Temperature: ", temp, "Humidity: ", humidity)
                     return temp, humidity
                 else:
                     print("Invalid sensor readings detected")
@@ -505,49 +498,6 @@ class BLENarmi:
         except:
             print("failed to save secrets")
 
-    async def update_temperature(self):
-        consecutive_failures = 0
-        while True:
-            await asyncio.sleep_ms(self.SLEEP_FOR_MS)
-
-            if len(self._connections) == 0:
-                continue
-
-            try:
-                temp, humidity = self.read_sht40()
-                if temp is not None:
-                    consecutive_failures = 0
-                    self.set_temperature(temp, notify=False, indicate=True)
-                    self.set_humidity(humidity, notify=False, indicate=True)
-                else:
-                    consecutive_failures += 1
-                    print(f"Failed to read SHT40 ({consecutive_failures} times)")
-                    if consecutive_failures >= 5:
-                        print("Too many consecutive failures, reinitializing SHT40")
-                        # Try to reinitialize the sensor
-                        try:
-                            adaptor = I2cAdapter(self.i2c)
-                            self.sht = SHT4xSensirion(adaptor, address=0x44, check_crc=True)
-                            self.sht_available = True
-                            consecutive_failures = 0
-                        except Exception as e:
-                            print("SHT40 reinitialization failed:", e)
-                            self.sht_available = False
-
-                # Rest of the sensor readings
-                distance = self.measure_distance()
-                self.set_distance(distance, notify=False, indicate=True)
-
-                batt_level, batt_voltage = self.read_battery()
-                if batt_level is not None:
-                    self.set_battery_level(batt_level, notify=False, indicate=True)
-                    # self.set_battery_voltage(batt_voltage, notify=False, indicate=True)
-
-            except Exception as e:
-                print("Error in update_temperature loop:", e)
-                sys.print_exception(e)
-                await asyncio.sleep_ms(1000)  # Wait before retrying
-
     async def check_buttons(self):
         while True:
             await asyncio.sleep_ms(500)
@@ -576,7 +526,7 @@ class BLENarmi:
                     self.fallin_sleep()
 
     async def loops(self):
-        temp_task = self.loop.create_task(self.update_temperature())
+        # self.indicate_loop = self.loop.create_task(self.start_indicating())
         ps = self.loop.create_task(self.go_sleep())
         self.loop.run_forever()
 
@@ -595,9 +545,63 @@ class BLENarmi:
         finally:
             self.loop.close()
 
+    async def start_indicating(self):
+        indicated = 0
+        indivcate_intv = 50
+        while True:
+            if len(self._connections) == 0:
+                continue
+            try:
+                temp, humidity = self.read_sht40()
+                distance = self.measure_distance()
+                batt_level, batt_voltage = self.read_battery()
+            except Exception as e:
+                print("Error on sensor:", e)
+                sys.print_exception(e)
+                await asyncio.sleep_ms(200)
+                temp, humidity = self.read_sht40()
+                distance = self.measure_distance()
+                batt_level, batt_voltage = self.read_battery()
+
+            print(
+                "     [BLE] Temp:",
+                temp,
+                ", Humidity:",
+                humidity,
+                ", Distance:",
+                distance,
+                ", Battery:",
+                batt_level,
+                ", Interval:",
+                self.SLEEP_FOR_MS,
+            )
+            try:
+                await asyncio.sleep_ms(1000)
+                for i in range(INDICATE_TIMES):
+                    await asyncio.sleep_ms(indivcate_intv)
+                    self.set_distance(distance, notify=False, indicate=True)
+                    await asyncio.sleep_ms(indivcate_intv)
+                    self.set_temperature(temp, notify=False, indicate=True)
+                    await asyncio.sleep_ms(indivcate_intv)
+                    self.set_humidity(humidity, notify=False, indicate=True)
+                    await asyncio.sleep_ms(indivcate_intv)
+                    self.set_battery_level(batt_level, notify=False, indicate=True)
+                    await asyncio.sleep_ms(indivcate_intv)
+                    self.set_interval(self.SLEEP_FOR_MS, notify=False, indicate=True)
+            except Exception as e:
+                print("Error in start_indicating loop:", e)
+                sys.print_exception(e)
+                indicated = 0
+
+            self.fallin_sleep()
+            await asyncio.sleep_ms(self.SLEEP_FOR_MS)
+
 
 if __name__ == "__main__":
     ble = bluetooth.BLE()
     temp = BLENarmi(ble)
-
-    temp.start()
+    try:
+        temp.start()
+    except KeyboardInterrupt:
+        print("Interrupted")
+        temp.loop.close()
