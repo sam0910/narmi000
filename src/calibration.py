@@ -1,3 +1,3 @@
-CALIB_TEMP = -1.78 - 0.6
+CALIB_TEMP = -2.38
 CALIB_HUMIDITY = 0.6
 # test
