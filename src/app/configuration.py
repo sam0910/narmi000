@@ -1,6 +1,6 @@
 from micropython import const
 
-ENABLE_SLEEP = True  # Enable sleep mode
+ENABLE_SLEEP = False  # Enable sleep mode
 
 ADVERTIZING_LIMIT_MS = const(10_000)  # Advertising time in ms
 SLEEP_TIME_S = const(5)  # Sleep Time in seconds
