@@ -75,37 +75,6 @@ function BLEControl() {
                             Disconnect
                         </Button>
 
-                        {/* Add calibration controls */}
-                        <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg">
-                            <div className="space-y-2">
-                                <Label>Temperature Calibration</Label>
-                                <div className="flex gap-2">
-                                    <Input
-                                        type="number"
-                                        step="0.1"
-                                        value={tempCalib}
-                                        onChange={(e) => setTempCalib(parseFloat(e.target.value) || 0)}
-                                        placeholder="°C"
-                                    />
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Humidity Calibration</Label>
-                                <div className="flex gap-2">
-                                    <Input
-                                        type="number"
-                                        step="0.1"
-                                        value={humidityCalib}
-                                        onChange={(e) => setHumidityCalib(parseFloat(e.target.value) || 0)}
-                                        placeholder="%"
-                                    />
-                                </div>
-                            </div>
-                            <Button className="col-span-2" variant="secondary" onClick={handleCalibrationSubmit}>
-                                Apply Calibration
-                            </Button>
-                        </div>
-
                         {/* Existing sensor readings */}
                         <div className="text-xl md:text-2xl">
                             <Label>
@@ -154,6 +123,36 @@ function BLEControl() {
                                     {lastReceived || "N/A"}
                                 </Badge>
                             </Label>
+                        </div>
+                        {/* Add calibration controls */}
+                        <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg">
+                            <div className="space-y-2">
+                                <Label>Temperature </Label>
+                                <div className="flex gap-2">
+                                    <Input
+                                        type="number"
+                                        step="0.1"
+                                        value={tempCalib}
+                                        onChange={(e) => setTempCalib(parseFloat(e.target.value) || 0)}
+                                        placeholder="°C"
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Humidity </Label>
+                                <div className="flex gap-2">
+                                    <Input
+                                        type="number"
+                                        step="0.1"
+                                        value={humidityCalib}
+                                        onChange={(e) => setHumidityCalib(parseFloat(e.target.value) || 0)}
+                                        placeholder="%"
+                                    />
+                                </div>
+                            </div>
+                            <Button className="col-span-2" variant="secondary" onClick={handleCalibrationSubmit}>
+                                Apply Calibration
+                            </Button>
                         </div>
                     </>
                 ) : (
