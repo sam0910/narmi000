@@ -24,6 +24,16 @@
 
 -   [src/calibration.py](https://github.com/sam0910/narmi000/blob/main/src/calibration.py) : 온습도 센서 보정치 저장파일 입니다.
 
+-   [src/app/configuration.py](https://github.com/sam0910/narmi000/blob/main/src/app/configuration.py) : 설정파일입니다.
+
+```
+ENABLE_SLEEP = False  # Enable sleep mode
+ADVERTIZING_LIMIT_MS = const(10_000)  # Advertising time in ms
+SLEEP_TIME_S = const(5)  # Sleep Time in seconds
+NO_INTERACTION = const(12_000)  # Time in ms to go to sleep if no interaction
+INDICATE_TIMES = const(2)  # Number of times to indicate the sensor value per connection
+```
+
     ### 펌웨어 관련은 [Micropython 관련문서](https://docs.micropython.org/en/latest/) 참고 부탁드립니다.
 
 ## :rocket: Bluetooth Characteristic
@@ -54,6 +64,19 @@ double humidityCalib = humidityCalibRaw / 100.0;
 // Print the results
 System.out.println("Temperature Calibration: " + tempCalib);
 System.out.println("Humidity Calibration: " + humidityCalib);
+```
+
+## :rocket: Micropython 파일 전송, [관련문서 링크](https://docs.micropython.org/en/latest/reference/mpremote.html)
+
+```
+$ pip install --user mpremote
+mpremote connect COM4
+```
+
+윈도우 현재 폴더내의 test.txt 파일을 기기의 /app 폴더로 복사
+
+```
+mpremote cp test.txt :/app
 ```
 
 ## :rocket: USB UART
