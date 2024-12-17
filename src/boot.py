@@ -14,9 +14,9 @@ if check:
     from app.start import BLENarmi
     import bluetooth
 
-    ble = bluetooth.BLE()
-    narmi = BLENarmi(ble)
-    narmi.start()
+    # ble = bluetooth.BLE()
+    # narmi = BLENarmi(ble)
+    # narmi.start()
 else:
     print("Both buttons are pressed, lets update the firmware")
     common.blink_led(4, 500)

@@ -514,7 +514,7 @@ class BLENarmi:
 
     def start(self):
 
-        self.btns = IQSButtons(self.btn_cb, 35, 34, loop=self.loop)
+        self.btns = IQSButtons(self.btn_cb, BTN_DOWN, BTN_UP, loop=self.loop)
         # temp_task = self.loop.create_task(self.check_buttons())
         # ps = self.loop.create_task(self.go_sleep())
 
