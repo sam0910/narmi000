@@ -28,6 +28,7 @@ from app.sensor.max17048 import max1704x
 from calibration import CALIB_TEMP, CALIB_HUMIDITY
 from app.configuration import *
 
+gc.enable()
 btn1 = Pin(34, Pin.IN, Pin.PULL_DOWN)
 btn2 = Pin(35, Pin.IN, Pin.PULL_DOWN)
 esp32.wake_on_ext1(pins=(btn1, btn2), level=esp32.WAKEUP_ANY_HIGH)
@@ -588,6 +589,10 @@ class BLENarmi:
                     self.set_battery_level(batt_level, notify=False, indicate=True)
                     await asyncio.sleep_ms(indivcate_intv)
                     self.set_interval(self.SLEEP_FOR_MS, notify=False, indicate=True)
+                    temp, humidity = self.read_sht40()
+                    distance = self.measure_distance()
+                    batt_level, batt_voltage = self.read_battery()
+                gc.collect()
             except Exception as e:
                 print("Error in start_indicating loop:", e)
                 sys.print_exception(e)
