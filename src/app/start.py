@@ -504,8 +504,10 @@ class BLENarmi:
             await asyncio.sleep_ms(500)
             print("Checking buttons", Pin(BTN_DOWN).value(), Pin(BTN_UP).value())
 
-    def fallin_sleep(self):
+    def falling_asleep(self):
         print("Going to sleep")
+        self.led.off()
+        time.sleep_ms(100)
         if ENABLE_SLEEP:
             deepsleep(self.SLEEP_FOR_MS)
 
@@ -519,12 +521,12 @@ class BLENarmi:
                 after_ineteracted = time.ticks_diff(time.ticks_ms(), self.USER_INTERACTED)
                 if after_ineteracted >= NO_INTERACTION:
                     self.USER_INTERACTED = time.ticks_ms()
-                    self.fallin_sleep()
+                    self.falling_asleep()
             if self.ADVERTIZING_TIME_MS > 0:
                 after_advertizing = time.ticks_diff(time.ticks_ms(), self.ADVERTIZING_TIME_MS)
                 if after_advertizing >= ADVERTIZING_LIMIT_MS:
                     self.ADVERTIZING_TIME_MS = time.ticks_ms()
-                    self.fallin_sleep()
+                    self.falling_asleep()
 
     async def loops(self):
         # self.indicate_loop = self.loop.create_task(self.start_indicating())
@@ -598,7 +600,7 @@ class BLENarmi:
                 sys.print_exception(e)
                 indicated = 0
 
-            self.fallin_sleep()
+            self.falling_asleep()
             await asyncio.sleep_ms(self.SLEEP_FOR_MS)
 
 

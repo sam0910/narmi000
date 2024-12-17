@@ -4,6 +4,8 @@
 
 -   기기전원 ON 후 즉시, 버튼 2개 누르고 있으면, 현재 깃헙 레포지토리 버젼(새로운 버젼 발견시)으로 펌웨어 업데이트 진행합니다.
 
+-   WiFi 연결 시도 20~30초 소요되니 잠시 기다려 주세요.
+
     업데이트 모드 진입시,
 
     1. 주변 Wifi 중 와이파이 비번이 [src/app/common.py](https://github.com/sam0910/narmi000/blob/main/src/app/common.py) - INITIAL_WIFI_PASSWORD(12345678)인 AP로 연결 시도.
