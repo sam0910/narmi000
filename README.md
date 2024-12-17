@@ -1,3 +1,14 @@
+## :rocket: 테스트용 PWA 앱
+
+-   React v18, Node v18.18.2 환경 입니다.
+
+-   Shadcn UI 적용된 vite.js 패키지 입니다.
+
+```
+narmi000/REACT> npm install
+narmi000/REACT> npm run dev
+```
+
 ## :rocket: 펌웨어 업데이트
 
 -   src/app 아래 파일들만 기기로 업데이트 됩니다.
