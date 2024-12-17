@@ -26,6 +26,7 @@ BTN_UP = const(35)
 
 _IRQ_CENTRAL_CONNECT = const(1)
 _IRQ_CENTRAL_DISCONNECT = const(2)
+_IRQ_GATTS_WRITE = const(3)  # Add this line
 _IRQ_GATTS_INDICATE_DONE = const(20)
 _IRQ_ENCRYPTION_UPDATE = const(28)
 _IRQ_PASSKEY_ACTION = const(31)
@@ -35,6 +36,7 @@ _FLAG_READ = const(0x0002)
 _FLAG_NOTIFY = const(0x0010)
 _FLAG_INDICATE = const(0x0020)
 _FLAG_READ_ENCRYPTED = const(0x0200)
+_FLAG_WRITE = const(0x0008)
 
 # org.bluetooth.service.environmental_sensing
 _ENV_SENSE_UUID = bluetooth.UUID(0x181A)
@@ -61,6 +63,12 @@ _HUMIDITY_CHAR = (
     _HUMIDITY_CHAR_UUID,
     _FLAG_READ | _FLAG_NOTIFY | _FLAG_INDICATE | _FLAG_READ_ENCRYPTED,
 )
+# Add new calibration characteristic UUID after existing UUIDs
+_CALIB_CHAR_UUID = bluetooth.UUID(0x2B00)
+_CALIB_CHAR = (
+    _CALIB_CHAR_UUID,
+    _FLAG_READ | _FLAG_WRITE | _FLAG_READ_ENCRYPTED,
+)
 # org.bluetooth.service.battery_service
 _BATT_SVC_UUID = bluetooth.UUID(0x180F)
 # org.bluetooth.characteristic.battery_level
@@ -82,6 +90,7 @@ _ENV_SENSE_SERVICE = (
         _DISTANCE_CHAR,
         _INTERVAL_CHAR,
         _HUMIDITY_CHAR,
+        _CALIB_CHAR,  # Add calibration characteristic
     ),
 )
 _SERVICES = (
@@ -179,9 +188,27 @@ class BLENarmi:
             print("Battery sensor initialization failed:", e)
             self.battery = None
 
-        # Update service registration to include battery service
+        # Update service registration to include calibration characteristic
+        _ENV_SENSE_SERVICE = (
+            _ENV_SENSE_UUID,
+            (
+                _TEMP_CHAR,
+                _DISTANCE_CHAR,
+                _INTERVAL_CHAR,
+                _HUMIDITY_CHAR,
+                _CALIB_CHAR,  # Add calibration characteristic
+            ),
+        )
+
+        # Update service registration tuple unpacking
         (
-            (self._temp_handle, self._distance_handle, self._interval_handle, self._humidity_handle),
+            (
+                self._temp_handle,
+                self._distance_handle,
+                self._interval_handle,
+                self._humidity_handle,
+                self._calib_handle,  # Add calibration handle
+            ),
             (self._batt_level_handle, self._batt_volt_handle),
         ) = self._ble.gatts_register_services(_SERVICES)
 
@@ -265,6 +292,26 @@ class BLENarmi:
             else:
                 key = sec_type, bytes(key)
                 return self._secrets.get(key, None)
+        # Add handler for write events
+        elif event == _IRQ_GATTS_WRITE:
+            conn_handle, attr_handle = data
+            if attr_handle == self._calib_handle:
+                # Read the written value
+                value = self._ble.gatts_read(self._calib_handle)
+                # Unpack calibration values
+                temp_calib = struct.unpack("<h", value[0:2])[0] / 100
+                humidity_calib = struct.unpack("<h", value[2:4])[0] / 100
+                print(f"Received calibration values: temp={temp_calib}°C, humidity={humidity_calib}%")
+
+                # Save to calibration file
+                with open("calibration.py", "w") as f:
+                    f.write(f"CALIB_TEMP = {temp_calib}\n")
+                    f.write(f"CALIB_HUMIDITY = {humidity_calib}\n")
+
+                # Optionally restart or update calibration immediately
+                global CALIB_TEMP, CALIB_HUMIDITY
+                CALIB_TEMP = temp_calib
+                CALIB_HUMIDITY = humidity_calib
 
     def btn_cb(self, args):
         btn = args[0]
@@ -449,6 +496,11 @@ class BLENarmi:
     async def update_temperature(self):
         consecutive_failures = 0
         while True:
+            await asyncio.sleep_ms(self.INTERVAL_MS)
+
+            if len(self._connections) == 0:
+                continue
+
             try:
                 temp, humidity = self.read_sht40()
                 if temp is not None:
@@ -479,8 +531,6 @@ class BLENarmi:
                     self.set_battery_level(batt_level, notify=False, indicate=True)
                     # self.set_battery_voltage(batt_voltage, notify=False, indicate=True)
 
-                await asyncio.sleep_ms(self.INTERVAL_MS)
-                await asyncio.sleep_ms(self.INTERVAL_GAP)
             except Exception as e:
                 print("Error in update_temperature loop:", e)
                 sys.print_exception(e)

@@ -36,7 +36,9 @@
 
 -   Interval : 0x2A24 (unsigned 32-bit, little endian)
 
--   Battery Level : 0x2A19(unsigned 8-bit)
+-   Battery Level : 0x2A19 (unsigned 8-bit)
+
+-   Save Calibration data : 0x2B00 (unsigned 16-bit)
 
 ## :rocket: USB UART
 
