@@ -1,3 +1,25 @@
+## :rocket: 개발환경 구축
+
+-   Clone this repository again, please refer pymakr.conf file.
+
+-   Install Pymakr vscode extension - version 1.1.18
+
+-   Modify pymakr.conf
+
+```
+"address": "COM6",
+```
+
+-   Click `X Pymakr Console`, now you can see REPL print-outs,
+
+-   Then CTRL + C for interrupting device running processes.
+
+-   Modify any of source file,
+
+-   then click `All Commands - Pymakr > Upload Project`(bottom of VSC Code status line ).
+
+-   Reset Device, boot.py and main.py will automatically running.
+
 ## :rocket: 테스트용 PWA 앱
 
 -   React v18, Node v18.18.2 환경 입니다.
